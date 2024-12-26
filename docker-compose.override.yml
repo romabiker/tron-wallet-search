@@ -1,0 +1,66 @@
+services:
+
+  db:
+    restart: "no"
+    ports:
+      - "5432:5432"
+
+#  adminer:
+#    restart: "no"
+#    ports:
+#      - "8080:8080"
+
+  backend: &backend
+    restart: "no"
+#    user: 1000:1000
+    ports:
+      - "8000:8000"
+    build:
+      context: ./backend
+    # command: sleep infinity  # Infinite loop to keep container alive doing nothing
+    command:
+      - fastapi
+      - run
+      - --reload
+      - "app/main.py"
+#    develop:
+#      watch:
+#        - path: ./backend
+#          action: sync
+#          target: /app
+#          ignore:
+#            - ./backend/.venv
+#            - .venv
+#        - path: ./backend/pyproject.toml
+#          action: rebuild
+    # TODO: remove once coverage is done locally
+    volumes:
+      - ./backend/app:/app/app
+
+  jupyterlab:
+    <<: *backend
+    container_name: tws-jupyterlab
+
+    ports:
+      - "8889:8889"
+    command:
+      - jupyter-lab
+      - --ip=0.0.0.0
+      - --port=8889
+      - --no-browser
+      - --allow-root
+#      - --autoreload
+
+#    env_file:
+#      - .env
+#    environment:
+#      - DOMAIN=${DOMAIN}
+#      - ENVIRONMENT=${ENVIRONMENT}
+#      - SECRET_KEY=${SECRET_KEY?Variable not set}
+#      - FIRST_SUPERUSER=${FIRST_SUPERUSER?Variable not set}
+#      - FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD?Variable not set}
+#      - POSTGRES_SERVER=db
+#      - POSTGRES_PORT=${POSTGRES_PORT}
+#      - POSTGRES_DB=${POSTGRES_DB}
+#      - POSTGRES_USER=${POSTGRES_USER?Variable not set}
+#      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
