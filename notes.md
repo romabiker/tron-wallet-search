@@ -15,3 +15,4 @@ and define these variables where you are starting your compose:
 
 MY_UID="$(id -u)" MY_GID="$(id -g)" docker-compose up
 
+addr = 'TTzPiwbBedv7E8p4FkyPyeqq4RVoqRL3TW'  # todo rm

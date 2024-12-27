@@ -1,6 +1,5 @@
-from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
+from typing import Generic, TypeVar
 
-from fastapi import HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy import delete, func, insert, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,62 +9,41 @@ from sqlalchemy.sql.elements import BinaryExpression
 from app.core.base_class import AsyncBase
 
 ModelType = TypeVar("ModelType", bound=AsyncBase)
-CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)
-UpdateSchemaType = TypeVar("UpdateSchemaType", bound=BaseModel)
+CreateDTO = TypeVar("CreateDTO", bound=BaseModel)
+UpdateDTO = TypeVar("UpdateDTO", bound=BaseModel)
+ItemDTO = TypeVar("ItemDTO", bound=BaseModel)
 
 
-class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
-    def __init__(self, model: Type[ModelType]):
+class DAOBase(Generic[ModelType, CreateDTO, UpdateDTO, ItemDTO]):
+    def __init__(self, model: type[ModelType], item_dto: type[ItemDTO]):
         """
-        CRUD object with default methods to Create, Read, Update, Delete (CRUD).
+        DAO object with default methods to Create, Read, Update, Delete (CRUD).
 
         **Parameters**
 
         * `model`: A SQLAlchemy model class
-        * `schema`: A Pydantic model (schema) class
         """
         self.model = model
+        self.item_dto = item_dto
 
     async def get(
         self,
         db: AsyncSession,
         filter_expr: BinaryExpression,
-    ) -> Optional[ModelType]:
+    ) -> ItemDTO | None:
         res = await db.execute(select(self.model).where(filter_expr))
-        return res.scalars().one_or_none()
+        orm_obj = res.scalars().one_or_none()
+        if orm_obj:
+            return self.item_dto.model_validate(orm_obj)
 
-    async def exists_or_404(
-        self,
-        db: AsyncSession,
-        filter_expr: BinaryExpression,
-    ) -> Optional[ModelType]:
-        res = await db.execute(select(self.model.id).where(filter_expr))
-        db_obj = res.scalars().one_or_none()
-        if db_obj is None:
-            raise HTTPException(status_code=404, detail="Object is not found")
-        return db_obj
-
-    async def raise_if_exists(
-        self,
-        db: AsyncSession,
-        filter_expr: BinaryExpression,
-        name: str,
-    ) -> Optional[ModelType]:
-        res = await db.execute(select(self.model.id).where(filter_expr))
-        db_obj = res.scalars().one_or_none()
-        if db_obj is not None:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"{name} exists")
-        return db_obj
-
-    async def get_multi(
+    async def get_list(
         self,
         db: AsyncSession,
         filter_expr: BinaryExpression = None,
         skip: int = 0,
         limit: int = 100,
         order: str = None,
-    ) -> List[ModelType]:
-
+    ) -> list[ItemDTO]:
         select_st = select(self.model)
         if filter_expr is not None:
             select_st = select_st.where(filter_expr)
@@ -80,21 +58,23 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             select_st = select_st.limit(limit)
 
         res = await db.execute(select_st)
-        return res.scalars().all()
+        return [
+            self.item_dto.model_validate(orm_obj) for orm_obj in res.scalars().all()
+        ]
 
-    async def create(self, db: AsyncSession, obj_in: CreateSchemaType) -> ModelType:
-        db_obj = self.model(**obj_in.dict())
+    async def create(self, db: AsyncSession, obj_in: CreateDTO) -> ItemDTO:
+        db_obj = self.model(**obj_in.model_dump())
         db.add(db_obj)
         await db.commit()
         await db.refresh(db_obj)
-        return db_obj
+        return self.item_dto.model_validate(db_obj)
 
     async def update(
         self,
         db: AsyncSession,
         filter_expr: BinaryExpression,
-        obj_in: Union[UpdateSchemaType, Dict[str, Any]],
-    ) -> Optional[ModelType]:
+        obj_in: UpdateDTO,
+    ) -> ModelType | None:
         update_st = update(self.model).where(filter_expr).values(**obj_in.model_dump())
         await db.execute(update_st)
         await db.commit()
@@ -105,13 +85,16 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         await db.commit()
         return
 
-    async def bulk_remove(self, db: AsyncSession, filter_expr: BinaryExpression) -> None:
+    async def bulk_remove(
+        self, db: AsyncSession, filter_expr: BinaryExpression
+    ) -> None:
         await db.execute(delete(self.model).where(filter_expr))
         await db.commit()
         return
 
-    async def count(self, db: AsyncSession, filter_expr: BinaryExpression = None) -> int:
-
+    async def count(
+        self, db: AsyncSession, filter_expr: BinaryExpression = None
+    ) -> int:
         select_st = select(func.count(self.model.id))
 
         if filter_expr is not None:
@@ -120,7 +103,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         res = await db.execute(select_st)
         return res.scalar_one()
 
-    async def bulk_create(self, db: AsyncSession, objects_in: List[CreateSchemaType]) -> None:
-        await db.execute(insert(self.model), [obj.dict() for obj in objects_in])
+    async def bulk_create(self, db: AsyncSession, objects_in: list[CreateDTO]) -> None:
+        await db.execute(insert(self.model), [obj.model_dump() for obj in objects_in])
         await db.commit()
         return

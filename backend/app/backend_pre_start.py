@@ -1,13 +1,11 @@
 import logging
-
-from sqlalchemy import Engine
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import Session, select
-from tenacity import after_log, before_log, retry, stop_after_attempt, wait_fixed
-
 from asyncio import run
 
-from app.core.db import engine, async_connection
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import select
+from tenacity import after_log, before_log, retry, stop_after_attempt, wait_fixed
+
+from app.core.db import async_connection
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

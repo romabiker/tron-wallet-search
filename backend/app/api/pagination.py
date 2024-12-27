@@ -1,16 +1,16 @@
 from __future__ import annotations
 
-from typing import Any, List, Sequence, Union
+from typing import Any
 
 from fastapi import Request
-from pydantic import BaseModel, HttpUrl
+from pydantic import BaseModel, Field
 
 
 class PageNumberPagination(BaseModel):
-    items: List[Any] = []
+    items: list[Any] = Field(default_factory=list)
     total: int
-    next: Union[HttpUrl, None] = None
-    prev: Union[HttpUrl, None] = None
+    next: str | None = None
+    prev: str | None = None
 
 
 def get_page_number_url(request: Request, page: int, per_page: int, total: int):
@@ -26,8 +26,10 @@ def get_page_number_url(request: Request, page: int, per_page: int, total: int):
     return str(url)
 
 
-def paginate_by_page_number(request: Request, items: Sequence, total: int, page: int, per_page: int):
-    return dict(
+def paginate_by_page_number(
+    request: Request, items: list, total: int, page: int, per_page: int
+):
+    return PageNumberPagination(
         items=items,
         total=total,
         next=get_page_number_url(request, page + 1, per_page, total),

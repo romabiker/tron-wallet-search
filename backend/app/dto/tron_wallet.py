@@ -1,24 +1,28 @@
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
-class TronWalletBaseDTO(BaseModel):
+class TronWalletCreateDTO(BaseModel):
     address: str
     balance: float = 0
     bandwidth: int = 0
     energy: int = 0
 
 
-class TronWalletCreateDTO(TronWalletBaseDTO):
-    pass
+class TronWalletUpdateDTO(BaseModel):
+    balance: float = 0
+    bandwidth: int = 0
+    energy: int = 0
 
 
-class TronWalletUpdateDTO(TronWalletBaseDTO):
-    pass
+class TronWalletDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
 
-
-class TronWalletDTO(TronWalletBaseDTO):
     id: int
+    address: str
+    balance: float = 0
+    bandwidth: int = 0
+    energy: int = 0
     created_at: datetime
     updated_at: datetime
