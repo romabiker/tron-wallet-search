@@ -44,7 +44,7 @@ build-backend = "hatchling.build"
 [tool.mypy]
 strict = true
 exclude = ["venv", ".venv", "alembic"]
-disable_error_code = ["return", ]
+disable_error_code = ["return", "import-untyped"]
 
 [tool.ruff]
 target-version = "py312"

@@ -1,4 +1,4 @@
-from typing import Generic, TypeVar
+from typing import Any
 
 from pydantic import BaseModel
 from sqlalchemy import delete, func, insert, update
@@ -8,13 +8,13 @@ from sqlalchemy.sql.elements import BinaryExpression
 
 from app.core.base_class import AsyncBase
 
-ModelType = TypeVar("ModelType", bound=AsyncBase)
-CreateDTO = TypeVar("CreateDTO", bound=BaseModel)
-UpdateDTO = TypeVar("UpdateDTO", bound=BaseModel)
-ItemDTO = TypeVar("ItemDTO", bound=BaseModel)
 
-
-class DAOBase(Generic[ModelType, CreateDTO, UpdateDTO, ItemDTO]):
+class DAOBase[
+    ModelType: AsyncBase,
+    CreateDTO: BaseModel,
+    UpdateDTO: BaseModel,
+    ItemDTO: BaseModel,
+]:
     def __init__(self, model: type[ModelType], item_dto: type[ItemDTO]):
         """
         DAO object with default methods to Create, Read, Update, Delete (CRUD).
@@ -22,6 +22,7 @@ class DAOBase(Generic[ModelType, CreateDTO, UpdateDTO, ItemDTO]):
         **Parameters**
 
         * `model`: A SQLAlchemy model class
+        * `model`: A Pydantic BaseModel model class
         """
         self.model = model
         self.item_dto = item_dto
@@ -29,7 +30,7 @@ class DAOBase(Generic[ModelType, CreateDTO, UpdateDTO, ItemDTO]):
     async def get(
         self,
         db: AsyncSession,
-        filter_expr: BinaryExpression,
+        filter_expr: BinaryExpression[Any],
     ) -> ItemDTO | None:
         res = await db.execute(select(self.model).where(filter_expr))
         orm_obj = res.scalars().one_or_none()
@@ -39,10 +40,10 @@ class DAOBase(Generic[ModelType, CreateDTO, UpdateDTO, ItemDTO]):
     async def get_list(
         self,
         db: AsyncSession,
-        filter_expr: BinaryExpression = None,
+        filter_expr: BinaryExpression[Any] | None = None,
         skip: int = 0,
         limit: int = 100,
-        order: str = None,
+        order: str | None = None,
     ) -> list[ItemDTO]:
         select_st = select(self.model)
         if filter_expr is not None:
@@ -72,28 +73,30 @@ class DAOBase(Generic[ModelType, CreateDTO, UpdateDTO, ItemDTO]):
     async def update(
         self,
         db: AsyncSession,
-        filter_expr: BinaryExpression,
+        filter_expr: BinaryExpression[Any],
         obj_in: UpdateDTO,
-    ) -> ModelType | None:
+    ) -> ItemDTO | None:
         update_st = update(self.model).where(filter_expr).values(**obj_in.model_dump())
         await db.execute(update_st)
         await db.commit()
         return await self.get(db, filter_expr)
 
-    async def remove(self, db: AsyncSession, filter_expr: BinaryExpression) -> None:
+    async def remove(
+        self, db: AsyncSession, filter_expr: BinaryExpression[Any]
+    ) -> None:
         await db.execute(delete(self.model).where(filter_expr))
         await db.commit()
         return
 
     async def bulk_remove(
-        self, db: AsyncSession, filter_expr: BinaryExpression
+        self, db: AsyncSession, filter_expr: BinaryExpression[Any]
     ) -> None:
         await db.execute(delete(self.model).where(filter_expr))
         await db.commit()
         return
 
     async def count(
-        self, db: AsyncSession, filter_expr: BinaryExpression = None
+        self, db: AsyncSession, filter_expr: BinaryExpression[Any] | None = None
     ) -> int:
         select_st = select(func.count(self.model.id))
 

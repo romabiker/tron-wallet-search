@@ -1,6 +1,5 @@
 import asyncio
 import logging
-from typing import Literal
 
 from httpx import HTTPStatusError
 from sqlalchemy import and_
@@ -20,14 +19,13 @@ logger = logging.getLogger(__name__)
 
 
 class UpdateOrCreateTronAccountInfoService(ServiceBase):
-    def __init__(self):
+    def __init__(self) -> None:
         provider = AsyncHTTPProvider(api_key=settings.TRONGRID_API_KEY)
         self.tron_client = AsyncTron(provider)
 
-    @async_connection
     async def __call__(
-        self, addr: str, session: AsyncSession, **kwargs
-    ) -> tuple[Literal[True], TronWalletDTO] | tuple[Literal[False], str]:
+        self, addr: str
+    ) -> tuple[bool, TronWalletDTO] | tuple[bool, str]:
         """
         Service gathers tron account info by tronpy lib and saves or updates it in database
         """
@@ -57,6 +55,12 @@ class UpdateOrCreateTronAccountInfoService(ServiceBase):
             "balance": float(account_balance_task.result()),
             "energy": 0,  # todo
         }
+        tron_wallet_dto = await self._save_data(data, addr)
+        return is_ok, tron_wallet_dto
+
+    @async_connection
+    async def _save_data(self, data: dict, addr: str, **kwargs) -> TronWalletDTO:  # type:ignore[no-untyped-def]
+        session: AsyncSession = kwargs["session"]
         tron_wallet_filter = and_(TronWallet.address == addr)
         tron_wallet = await tron_wallet_dao.get(session, filter_expr=tron_wallet_filter)
         if tron_wallet:
@@ -67,7 +71,7 @@ class UpdateOrCreateTronAccountInfoService(ServiceBase):
         else:
             create_dto = TronWalletCreateDTO.model_validate(**data)
             tron_wallet_dto = await tron_wallet_dao.create(session, create_dto)
-        return is_ok, tron_wallet_dto
+        return tron_wallet_dto
 
 
 update_or_create_tron_account_info_service = UpdateOrCreateTronAccountInfoService()

@@ -21,7 +21,9 @@ wait_seconds = 1
     after=after_log(logger, logging.WARN),
 )
 @async_connection
-async def init(session: AsyncSession) -> None:
+async def init(**kwargs) -> None:  # type:ignore[no-untyped-def]
+    session: AsyncSession = kwargs["session"]
+
     try:
         await session.execute(select(1))
     except Exception as e:

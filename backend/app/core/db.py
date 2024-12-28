@@ -1,3 +1,4 @@
+from collections.abc import Awaitable, Callable
 from typing import Any
 
 from sqlalchemy.ext.asyncio import (
@@ -13,11 +14,13 @@ engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
 async_engine = create_async_engine(str(settings.SQLALCHEMY_ASYNC_DATABASE_URI))
 async_session_maker = async_sessionmaker(async_engine, expire_on_commit=False)
 
+FuncType = Callable[[Any, Any], Awaitable[Any]]
 
-def async_connection(method: callable) -> Any:
+
+def async_connection(method: FuncType) -> FuncType:
     """автоматизация создания и закрытие асинхронной сессии"""
 
-    async def wrapper(*args, **kwargs):
+    async def wrapper(*args, **kwargs) -> Any:
         async with async_session_maker() as session:
             try:
                 # Явно не открываем транзакции, так как они уже есть в контексте

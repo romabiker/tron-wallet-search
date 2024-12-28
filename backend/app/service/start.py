@@ -19,7 +19,9 @@ class InitDbService(ServiceBase):
     """
 
     @async_connection
-    async def __call__(self, session: AsyncSession) -> None:
+    async def __call__(self, **kwargs) -> None:
+        session: AsyncSession = kwargs["session"]
+
         user = await user_dao.get(
             session, filter_expr=and_(User.email == settings.FIRST_SUPERUSER)
         )
