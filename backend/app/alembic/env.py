@@ -20,7 +20,8 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-from app.models import AsyncBase, TronWallet, User # noqa
+from app.models import TronWallet, User # noqa
+from app.core.base_class import AsyncBase
 from app.core.config import settings # noqa
 
 

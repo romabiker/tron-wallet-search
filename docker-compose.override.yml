@@ -36,6 +36,7 @@ services:
     # TODO: remove once coverage is done locally
     volumes:
       - ./backend/htmlcov:/app/htmlcov
+      - ./backend/app/alembic/versions/:/app/app/alembic/versions/
 
   jupyterlab:
     <<: *backend

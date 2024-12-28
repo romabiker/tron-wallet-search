@@ -64,12 +64,12 @@ class UpdateOrCreateTronAccountInfoService(ServiceBase):
         tron_wallet_filter = and_(TronWallet.address == addr)
         tron_wallet = await tron_wallet_dao.get(session, filter_expr=tron_wallet_filter)
         if tron_wallet:
-            update_dto = TronWalletUpdateDTO.model_validate(**data)
+            update_dto = TronWalletUpdateDTO(**data)
             tron_wallet_dto = await tron_wallet_dao.update(
                 session, tron_wallet_filter, update_dto
             )
         else:
-            create_dto = TronWalletCreateDTO.model_validate(**data)
+            create_dto = TronWalletCreateDTO(**data)
             tron_wallet_dto = await tron_wallet_dao.create(session, create_dto)
         return tron_wallet_dto
 
