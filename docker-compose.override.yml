@@ -23,19 +23,19 @@ services:
       - run
       - --reload
       - "app/main.py"
-#    develop:
-#      watch:
-#        - path: ./backend
-#          action: sync
-#          target: /app
-#          ignore:
-#            - ./backend/.venv
-#            - .venv
-#        - path: ./backend/pyproject.toml
-#          action: rebuild
+    develop:
+      watch:
+        - path: ./backend
+          action: sync
+          target: /app
+          ignore:
+            - ./backend/.venv
+            - .venv
+        - path: ./backend/pyproject.toml
+          action: rebuild
     # TODO: remove once coverage is done locally
     volumes:
-      - ./backend/app:/app/app
+      - ./backend/htmlcov:/app/htmlcov
 
   jupyterlab:
     <<: *backend
@@ -49,7 +49,7 @@ services:
       - --port=8889
       - --no-browser
       - --allow-root
-#      - --autoreload
+      - --autoreload
 
 #    env_file:
 #      - .env
