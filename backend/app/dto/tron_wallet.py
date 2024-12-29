@@ -26,3 +26,7 @@ class TronWalletDTO(BaseModel):
     energy: int = 0
     created_at: datetime
     updated_at: datetime
+
+
+class TronWalletApiInDTO(BaseModel):
+    address: str

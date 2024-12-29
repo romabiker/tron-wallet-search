@@ -11,7 +11,22 @@ from app.core.config import settings
 
 engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
 
-async_engine = create_async_engine(str(settings.SQLALCHEMY_ASYNC_DATABASE_URI))
+
+def create_engine_kwargs(**kwargs):
+    engine_kwargs = {
+        "url": str(settings.SQLALCHEMY_ASYNC_DATABASE_URI),
+        "future": True,
+        "pool_recycle": 30 * 60,
+        "isolation_level": "REPEATABLE READ",
+    }
+    engine_kwargs.update(**kwargs)
+
+    if settings.DEBUG:
+        engine_kwargs.update({"echo": True})
+    return engine_kwargs
+
+
+async_engine = create_async_engine(**create_engine_kwargs())
 async_session_maker = async_sessionmaker(async_engine, expire_on_commit=False)
 
 FuncType = Callable[[Any, Any], Awaitable[Any]]

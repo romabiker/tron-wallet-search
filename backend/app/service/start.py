@@ -10,6 +10,8 @@ from app.dto import UserCreateDTO
 from app.models import User
 from app.service.base import ServiceBase
 
+from app.core.security import get_password_hash
+
 logger = logging.getLogger(__name__)
 
 
@@ -28,7 +30,7 @@ class InitDbService(ServiceBase):
         if not user:
             user_in = UserCreateDTO(
                 email=settings.FIRST_SUPERUSER,
-                password=settings.FIRST_SUPERUSER_PASSWORD,
+                hashed_password=get_password_hash(settings.FIRST_SUPERUSER_PASSWORD),
                 is_superuser=True,
             )
-            await user_dao.create_user(session=session, user_create=user_in)
+            await user_dao.create(session, user_in)

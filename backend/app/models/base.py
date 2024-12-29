@@ -2,8 +2,18 @@ from datetime import datetime
 
 from sqlalchemy import Integer, func
 from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import declarative_base, declared_attr
+from sqlalchemy.ext.asyncio import AsyncAttrs
 
-from app.core.base_class import AsyncBase
+from app.core.base_class import Base
+
+
+class AsyncBase(AsyncAttrs, Base):  # type:ignore[valid-type,misc]
+    __abstract__ = True
+
+    @declared_attr.directive
+    def __tablename__(cls) -> str:
+        return cls.__name__.lower() + "s"  # type:ignore[no-any-return]
 
 
 class TimeStampedBase(AsyncBase):

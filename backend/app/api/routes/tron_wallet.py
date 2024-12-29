@@ -3,17 +3,18 @@ from sqlalchemy import and_
 
 from app.api.deps import SessionDep
 from app.api.pagination import PageNumberPagination, paginate_by_page_number
-from app.dao.tron_wallet import tron_wallet_dao
-from app.dto.tron_wallet import TronWalletDTO
-from app.models.tron_wallet import TronWallet
+from app.dao import tron_wallet_dao
+from app.dto import TronWalletDTO, TronWalletApiInDTO
+from app.models import TronWallet
 from app.service.tron import update_or_create_tron_account_info_service
 
-router = APIRouter(tags=["tron_wallet"], prefix="/tron_wallet")
+
+router = APIRouter(tags=["tron_wallet"], prefix="/tron-wallet")
 
 
 @router.post("", status_code=201, response_model=TronWalletDTO)
-async def update_or_create(address: str) -> TronWalletDTO:
-    is_ok, result = await update_or_create_tron_account_info_service(address)
+async def update_or_create(wallet_in: TronWalletApiInDTO) -> TronWalletDTO:
+    is_ok, result = await update_or_create_tron_account_info_service(wallet_in.address)
     if not is_ok:
         raise HTTPException(status_code=400, detail=result)
     return result

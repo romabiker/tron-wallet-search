@@ -1,6 +1,5 @@
 from sqlalchemy import MetaData
-from sqlalchemy.ext.asyncio import AsyncAttrs
-from sqlalchemy.orm import declarative_base, declared_attr
+from sqlalchemy.orm import declarative_base
 
 convention = {
     "ix": "ix_%(column_0_label)s",
@@ -10,11 +9,3 @@ convention = {
     "pk": "pk_%(table_name)s",
 }
 Base = declarative_base(metadata=MetaData(naming_convention=convention))
-
-
-class AsyncBase(AsyncAttrs, Base):  # type:ignore[valid-type,misc]
-    __abstract__ = True
-
-    @declared_attr.directive
-    def __tablename__(cls) -> str:
-        return cls.__name__.lower() + "s"  # type:ignore[no-any-return]

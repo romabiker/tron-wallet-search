@@ -18,14 +18,11 @@ if config.config_file_name is not None:
 
 # add your model's MetaData object here
 # for 'autogenerate' support
-# from myapp import mymodel
-# target_metadata = mymodel.Base.metadata
-from app.models import TronWallet, User # noqa
 from app.core.base_class import AsyncBase
-from app.core.config import settings # noqa
-
-
 target_metadata = AsyncBase.metadata
+
+from app.models import TronWallet, User # noqa
+from app.core.config import settings # noqa
 
 
 def get_url():

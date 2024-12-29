@@ -1,12 +1,12 @@
 from typing import Any
 
+from app.models.base import AsyncBase
 from pydantic import BaseModel
 from sqlalchemy import delete, func, insert, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.sql.elements import BinaryExpression
 
-from app.core.base_class import AsyncBase
 
 
 class DAOBase[
