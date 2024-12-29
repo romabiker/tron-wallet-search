@@ -2,11 +2,12 @@ import pytest
 from app.dao import tron_wallet_dao
 
 from app.dto import TronWalletCreateDTO
+from sqlalchemy.ext.asyncio import AsyncSession
 
 pytestmark = pytest.mark.anyio
 
 
-async def test_create_tron_wallet(session) -> None:
+async def test_create_tron_wallet(session: AsyncSession) -> None:
     wallet_create_dto = TronWalletCreateDTO(
         address = 'TestiwbBedv7E8p4FkyPyeqq4RVoqRL3TW',
         balance = 500.1,

@@ -21,7 +21,7 @@ class InitDbService(ServiceBase):
     """
 
     @async_connection
-    async def __call__(self, **kwargs) -> None:
+    async def __call__(self, **kwargs) -> None:  # type: ignore
         session: AsyncSession = kwargs["session"]
 
         user = await user_dao.get(

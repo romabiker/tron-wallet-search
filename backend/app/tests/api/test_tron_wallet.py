@@ -1,12 +1,12 @@
 import pytest
 
 from app.dto import TronWalletApiInDTO
-
+from httpx import AsyncClient
 
 pytestmark = pytest.mark.anyio
 
 
-async def test_crud(client):
+async def test_crud(client: AsyncClient) -> None:
     wallet_in = TronWalletApiInDTO(address='TTzPiwbBedv7E8p4FkyPyeqq4RVoqRL3TW')
     response = await client.post("/tron-wallet", json=wallet_in.model_dump())
     assert response.status_code == 201

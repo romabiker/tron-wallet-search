@@ -17,7 +17,7 @@ async def update_or_create(wallet_in: TronWalletApiInDTO) -> TronWalletDTO:
     is_ok, result = await update_or_create_tron_account_info_service(wallet_in.address)
     if not is_ok:
         raise HTTPException(status_code=400, detail=result)
-    return result
+    return result  # type:ignore[return-value]
 
 
 @router.get("", response_model=PageNumberPagination)

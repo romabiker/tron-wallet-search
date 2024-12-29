@@ -5,8 +5,7 @@ from pydantic import BaseModel
 from sqlalchemy import delete, func, insert, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy.sql.elements import BinaryExpression
-
+from sqlalchemy.sql.elements import BinaryExpression, ColumnElement
 
 
 class DAOBase[
@@ -30,7 +29,7 @@ class DAOBase[
     async def get(
         self,
         db: AsyncSession,
-        filter_expr: BinaryExpression[Any],
+        filter_expr: BinaryExpression[Any] | ColumnElement[Any],
     ) -> ItemDTO | None:
         res = await db.execute(select(self.model).where(filter_expr))
         orm_obj = res.scalars().one_or_none()
@@ -40,7 +39,7 @@ class DAOBase[
     async def get_list(
         self,
         db: AsyncSession,
-        filter_expr: BinaryExpression[Any] | None = None,
+        filter_expr: BinaryExpression[Any] | ColumnElement[Any] | None = None,
         skip: int = 0,
         limit: int = 100,
         order: str | None = None,
@@ -73,7 +72,7 @@ class DAOBase[
     async def update(
         self,
         db: AsyncSession,
-        filter_expr: BinaryExpression[Any],
+        filter_expr: BinaryExpression[Any] | ColumnElement[Any],
         obj_in: UpdateDTO,
     ) -> ItemDTO | None:
         update_st = update(self.model).where(filter_expr).values(**obj_in.model_dump())
@@ -82,21 +81,21 @@ class DAOBase[
         return await self.get(db, filter_expr)
 
     async def remove(
-        self, db: AsyncSession, filter_expr: BinaryExpression[Any]
+        self, db: AsyncSession, filter_expr: BinaryExpression[Any] | ColumnElement[Any]
     ) -> None:
         await db.execute(delete(self.model).where(filter_expr))
         await db.commit()
         return
 
     async def bulk_remove(
-        self, db: AsyncSession, filter_expr: BinaryExpression[Any]
+        self, db: AsyncSession, filter_expr: BinaryExpression[Any] | ColumnElement[Any]
     ) -> None:
         await db.execute(delete(self.model).where(filter_expr))
         await db.commit()
         return
 
     async def count(
-        self, db: AsyncSession, filter_expr: BinaryExpression[Any] | None = None
+        self, db: AsyncSession, filter_expr: BinaryExpression[Any] | ColumnElement[Any] | None = None
     ) -> int:
         select_st = select(func.count(self.model.id))
 

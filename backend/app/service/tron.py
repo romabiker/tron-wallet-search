@@ -1,5 +1,7 @@
 import asyncio
 import logging
+from typing import Any
+
 
 from httpx import HTTPStatusError
 from sqlalchemy import and_
@@ -59,7 +61,7 @@ class UpdateOrCreateTronAccountInfoService(ServiceBase):
         return is_ok, tron_wallet_dto
 
     @async_connection
-    async def _save_data(self, data: dict, addr: str, **kwargs) -> TronWalletDTO:  # type:ignore[no-untyped-def]
+    async def _save_data(self, data: dict[Any, Any], addr: str, **kwargs) -> TronWalletDTO:  # type:ignore[no-untyped-def]
         session: AsyncSession = kwargs["session"]
         tron_wallet_filter = and_(TronWallet.address == addr)
         tron_wallet = await tron_wallet_dao.get(session, filter_expr=tron_wallet_filter)
@@ -71,7 +73,7 @@ class UpdateOrCreateTronAccountInfoService(ServiceBase):
         else:
             create_dto = TronWalletCreateDTO(**data)
             tron_wallet_dto = await tron_wallet_dao.create(session, create_dto)
-        return tron_wallet_dto
+        return tron_wallet_dto  # type:ignore[return-value]
 
 
 update_or_create_tron_account_info_service = UpdateOrCreateTronAccountInfoService()

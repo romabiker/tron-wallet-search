@@ -1,3 +1,5 @@
+# mypy: disable-error-code="no-untyped-def,type-arg"
+
 from collections.abc import Awaitable, Callable
 from typing import Any
 
@@ -12,7 +14,7 @@ from app.core.config import settings
 engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
 
 
-def create_engine_kwargs(**kwargs):
+def create_engine_kwargs(**kwargs) -> dict:
     engine_kwargs = {
         "url": str(settings.SQLALCHEMY_ASYNC_DATABASE_URI),
         "future": True,
@@ -29,10 +31,8 @@ def create_engine_kwargs(**kwargs):
 async_engine = create_async_engine(**create_engine_kwargs())
 async_session_maker = async_sessionmaker(async_engine, expire_on_commit=False)
 
-FuncType = Callable[[Any, Any], Awaitable[Any]]
 
-
-def async_connection(method: FuncType) -> FuncType:
+def async_connection(method: Callable) -> Callable:
     """автоматизация создания и закрытие асинхронной сессии"""
 
     async def wrapper(*args, **kwargs) -> Any:

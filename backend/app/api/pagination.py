@@ -13,13 +13,13 @@ class PageNumberPagination(BaseModel):
     prev: str | None = None
 
 
-def get_page_number_url(request: Request, page: int, per_page: int, total: int):
+def get_page_number_url(request: Request, page: int, per_page: int, total: int) -> str | None:
     if page * per_page > total or page <= 0:
-        return
+        return None
 
     query_params = dict(request.query_params.items())
-    query_params["page"] = page
-    query_params["per_page"] = per_page
+    query_params["page"] = str(page)
+    query_params["per_page"] = str(per_page)
 
     url = request.url.replace_query_params(**query_params)
 
@@ -27,8 +27,8 @@ def get_page_number_url(request: Request, page: int, per_page: int, total: int):
 
 
 def paginate_by_page_number(
-    request: Request, items: list, total: int, page: int, per_page: int
-):
+    request: Request, items: list[Any], total: int, page: int, per_page: int
+) -> PageNumberPagination:
     return PageNumberPagination(
         items=items,
         total=total,
